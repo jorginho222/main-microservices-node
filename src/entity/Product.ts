@@ -16,4 +16,13 @@ export class Product {
 
     @Column({default: 0})
     likes: number
+
+    @Column({default: 0})
+    approxPrice: number
+
+    @Column({nullable: true})
+    exchangeTags: string
+
+    @Column({default: []})
+    permutedProducts: Product[]
 }

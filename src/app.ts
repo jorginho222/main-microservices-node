@@ -9,7 +9,7 @@ import {ObjectId} from "mongodb";
 
 createConnection().then(db => {
     const productRepository = db.getMongoRepository(Product);
-    amqp.connect('amqps://yjawjfrr:M_RnjO_jbU2Hy6SpN-S9Z-SofaIY2lMV@cow.rmq2.cloudamqp.com/yjawjfrr', function (error0, connection) {
+    amqp.connect(process.env.RABBITMQ_URL, function (error0, connection) {
         if (error0) {
             throw error0
         }
@@ -45,6 +45,10 @@ createConnection().then(db => {
                 res.send(product)
             })
 
+            app.post('/api/products/:id/permute/:permuteId', async (req: Request, res: Response) => {
+                // TODO perform permute transaction
+            })
+
             channel.consume('product_created', async msg => {
                 // product emitted from admin
                 const eventProduct: Product = JSON.parse(msg.content.toString())
@@ -53,6 +57,8 @@ createConnection().then(db => {
                 product.title = eventProduct.title
                 product.image = eventProduct.image
                 product.likes = eventProduct.likes
+                product.approxPrice = eventProduct.approxPrice
+                product.exchangeTags = eventProduct.exchangeTags
 
                 await productRepository.save(product)
                 console.log('product created')
@@ -68,7 +74,8 @@ createConnection().then(db => {
                 productRepository.merge(product, {
                     title: eventProduct.title,
                     image: eventProduct.image,
-                    likes: eventProduct.likes
+                    approxPrice: eventProduct.approxPrice,
+                    exchangeTags: eventProduct.exchangeTags,
                 })
 
                 await productRepository.save(product)
