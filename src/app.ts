@@ -46,7 +46,24 @@ createConnection().then(db => {
             })
 
             app.post('/api/products/:id/permute/:permuteId', async (req: Request, res: Response) => {
-                // TODO perform permute transaction
+                const product = await productRepository.findOne({
+                    where: {
+                        _id: new ObjectId(req.params.id)
+                    }
+                })
+
+                const permutedProduct = await productRepository.findOne({
+                    where: {
+                        _id: new ObjectId(req.params.permuteId)
+                    }
+                })
+
+                await axios.post(`http://localhost:8000/api/products/${product.admin_id}/permute/${permutedProduct.admin_id}`, {})
+
+                product.addPermutedProduct(permutedProduct)
+                await productRepository.save(product)
+
+                return res.json()
             })
 
             channel.consume('product_created', async msg => {
@@ -59,6 +76,7 @@ createConnection().then(db => {
                 product.likes = eventProduct.likes
                 product.approxPrice = eventProduct.approxPrice
                 product.exchangeTags = eventProduct.exchangeTags
+                product.permutedProducts = []
 
                 await productRepository.save(product)
                 console.log('product created')

@@ -25,4 +25,8 @@ export class Product {
 
     @Column({default: []})
     permutedProducts: Product[]
+
+    public addPermutedProduct(product: Product) {
+        this.permutedProducts.push(product)
+    }
 }
